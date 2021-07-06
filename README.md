@@ -3,6 +3,8 @@ The project is aimed to get the geographical data from web pages (like goole map
 
 For now I'm only trying to get the elevation for particular lon lat values.
 
+The Selenium webdriver is used (for Chrome).
+
 TODO:
   1. Get the buildings height
   2. Understand is it a building or something else at particular coordinates.
