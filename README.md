@@ -8,4 +8,5 @@ The Selenium webdriver is used (for Chrome).
 TODO:
   1. Get the buildings height
   2. Understand is it a building or something else at particular coordinates.
+  3. Visualize the surface (with 3D plot\OpenGL\DirectX\etc)
   
