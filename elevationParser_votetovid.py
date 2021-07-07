@@ -10,7 +10,7 @@ from selenium.webdriver.common.keys import Keys
 import time
 from bs4 import BeautifulSoup
 
-# URL format
+# Start URL format
 # 'center' value could not be changed in future, only 'point'
 center = [55.0166, 82.9544] # Novosibirsk coordinates
 comma = ','
@@ -30,25 +30,23 @@ maxLat = borders[3]
 
 step = 0.001 # around 60 meters
 
-
-print(  )
-def writeIntoFile(filename, lon, lat, data):
+def writeIntoFileArray(filename, lon, lat, data):
     f = open(filename, 'a')
     for i in range(len(data)):
-        f.write(str(lon) + ' ' + str(lat) + ' ' + str(data))
+        f.write(str(lon) + ' ' + str(lat) + ' ' + str(data) + '\n')
 
+def writeIntoFile(filename, lon, lat, data):
+    f = open(filename, 'a')
+    f.write(str(lon) + ' ' + str(lat) + ' ' + str(data) + '\n')
 
-def main(lon1, lat1, lon2, lat2, step):
+def main(minLon_, minLat_, maxLon_, maxLat_, step):
     driver = webdriver.Chrome(ChromeDriverManager(version="91.0.4472.19").install())
-    data_ = []
-    lon_ = []
-    lat_ = []
-    counter = 0
-    for k in range( round((lon2 - lon1)/step) ):
-        pointer[0] = lon1 + step
-        for j in range( round((lat2 - lat1)/step) ):
-            pointer[1] = lat1 + step
-            counter += 1
+    pointer[0] = minLon_
+    pointer[1] = minLat_
+    for k in range(round((maxLon_ - minLon_) / step)):
+        pointer[0] += step
+        for j in range(round((maxLat_ - minLat_) / step)):
+            pointer[1] += step
             url = 'https://votetovid.ru/#' + str(center[0]) + comma + str(center[1]) + comma + zoom + comma \
                   + str(pointer[0]) + comma + str(pointer[1]) + i + comma + trb
             driver.get(url)
@@ -56,18 +54,9 @@ def main(lon1, lat1, lon2, lat2, step):
             html_ = driver.page_source
             # for this part of the code you will need to install lxml module: pip install lxml
             soup = BeautifulSoup(html_, 'lxml')
-            print(soup.find_all('span'))
             span_txHgt = soup.find_all('span')[0]
-            data_.append(span_txHgt.text)
-            lon_.append(pointer[0])
-            lat_.append(pointer[1])
-            print(lon_, lat_, data_)
-            if(counter == 500):
-                writeIntoFile('Novosibirsk.txt', lon_, lat_, data_)
-                counter = 0
-                data_.clear()
-                lon_.clear()
-                lat_.clear()
+            print(pointer[0], pointer[1], span_txHgt.text)
+            writeIntoFile('Novosibirsk.txt', pointer[0], pointer[1], span_txHgt.text)
 
 
 if __name__ == '__main__':

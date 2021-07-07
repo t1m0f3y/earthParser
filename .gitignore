@@ -1,2 +1,6 @@
+# generated files
+*.txt
+
+
 /venv
 /.idea
