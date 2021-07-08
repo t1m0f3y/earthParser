@@ -22,7 +22,7 @@ trb = 'trb'
 #       + str(pointer[0]) + comma + str(pointer[1]) + i + comma + trb
 
 # rectangle borders around the 'center'
-borders = [54.932657999999925, 82.686262, 55.130431, 83.148554]
+borders = [54.916041, 82.646872, 55.113385, 83.124699]
 minLon = borders[0]
 minLat = borders[1]
 maxLon = borders[2]
@@ -49,14 +49,17 @@ def main(minLon_, minLat_, maxLon_, maxLat_, step):
             pointer[1] += step
             url = 'https://votetovid.ru/#' + str(center[0]) + comma + str(center[1]) + comma + zoom + comma \
                   + str(pointer[0]) + comma + str(pointer[1]) + i + comma + trb
-            driver.get(url)
-            time.sleep(1)
-            html_ = driver.page_source
-            # for this part of the code you will need to install lxml module: pip install lxml
-            soup = BeautifulSoup(html_, 'lxml')
-            span_txHgt = soup.find_all('span')[0]
-            print(pointer[0], pointer[1], span_txHgt.text)
-            writeIntoFile('Novosibirsk.txt', pointer[0], pointer[1], span_txHgt.text)
+            height = '?'
+            while(height == '?'):
+                driver.get(url)
+                time.sleep(1)
+                html_ = driver.page_source
+                # for this part of the code you will need to install lxml module: pip install lxml
+                soup = BeautifulSoup(html_, 'lxml')
+                span_txHgt = soup.find_all('span')[0]
+                height = span_txHgt.text
+            print(pointer[0], pointer[1], height)
+            writeIntoFile('Novosibirsk.txt', pointer[0], pointer[1], height)
 
 
 if __name__ == '__main__':
