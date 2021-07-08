@@ -22,7 +22,7 @@ trb = 'trb'
 #       + str(pointer[0]) + comma + str(pointer[1]) + i + comma + trb
 
 # rectangle borders around the 'center'
-borders = [54.899658, 82.686262, 55.130431, 83.148554]
+borders = [54.932657999999925, 82.686262, 55.130431, 83.148554]
 minLon = borders[0]
 minLat = borders[1]
 maxLon = borders[2]
@@ -42,9 +42,9 @@ def writeIntoFile(filename, lon, lat, data):
 def main(minLon_, minLat_, maxLon_, maxLat_, step):
     driver = webdriver.Chrome(ChromeDriverManager(version="91.0.4472.19").install())
     pointer[0] = minLon_
-    pointer[1] = minLat_
     for k in range(round((maxLon_ - minLon_) / step)):
         pointer[0] += step
+        pointer[1] = minLat_
         for j in range(round((maxLat_ - minLat_) / step)):
             pointer[1] += step
             url = 'https://votetovid.ru/#' + str(center[0]) + comma + str(center[1]) + comma + zoom + comma \
