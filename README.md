@@ -1,5 +1,8 @@
 # earthParser
-The project is aimed to get the geographical data from web pages (like google maps, yandex maps, OSM, etc.) without any cost.
+
+## Only for Educational purposes
+
+The project is aimed to get the geographical data from web pages (like google maps, yandex maps, OSM, etc.).
 
 For now, I'm only trying to get the elevation for particular lon lat values.
 
