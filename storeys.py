@@ -41,25 +41,14 @@ def writeIntoFile(filename, lon, lat, data):
 
 def main(minLon_, minLat_, maxLon_, maxLat_, step):
     driver = webdriver.Chrome(ChromeDriverManager(version="91.0.4472.19").install())
-    pointer[0] = minLon_
-    for k in range(round((maxLon_ - minLon_) / step)):
-        pointer[0] += step
-        pointer[1] = minLat_
-        for j in range(round((maxLat_ - minLat_) / step)):
-            pointer[1] += step
-            url = 'https://votetovid.ru/#' + str(center[0]) + comma + str(center[1]) + comma + zoom + comma \
-                  + str(pointer[0]) + comma + str(pointer[1]) + i + comma + trb
-            # height = '?'
-            # while(height == '?'):
-            driver.get(url)
-            time.sleep(1)
-            html_ = driver.page_source
-            # for this part of the code you will need to install lxml module: pip install lxml
-            soup = BeautifulSoup(html_, 'lxml')
-            span_txHgt = soup.find_all('span')[0]
-            height = span_txHgt.text
-            print(pointer[0], pointer[1], height)
-            writeIntoFile('Novosibirsk.txt', pointer[0], pointer[1], height)
+    url = 'https://2gis.ru/novosibirsk/firm/141265770822730/82.950159%2C55.012845?m=82.949953%2C55.012788%2F17.83%2Fr%2F-2.44'
+    driver.get(url)
+    time.sleep(1)
+    html_ = driver.page_source
+    soup = BeautifulSoup(html_, 'lxml')
+    print( soup )
+    #print(soup.find_all('script')[13])
+    #writeIntoFile('Novosibirsk_storeys.txt', pointer[0], pointer[1], height)
 
 
 if __name__ == '__main__':
