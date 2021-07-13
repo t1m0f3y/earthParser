@@ -9,6 +9,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.keys import Keys
 import time
 from bs4 import BeautifulSoup
+import random
 
 # Start URL format
 # 'center' value could not be changed in future, only 'point'
@@ -21,14 +22,14 @@ trb = 'trb'
 # url = 'https://votetovid.ru/#' + str(center[0]) + comma + str(center[1]) + comma + zoom + comma \
 #       + str(pointer[0]) + comma + str(pointer[1]) + i + comma + trb
 
-# rectangle borders around the 'center'
-borders = [54.92404099999998, 82.71187200000031, 55.113385, 83.124699]
+# rectangle borders around the 'center'  -> 55.013843,82.947824,15.75z
+borders = [55.008070, 82.932401, 55.018151, 82.960240]
 minLon = borders[0]
 minLat = borders[1]
 maxLon = borders[2]
 maxLat = borders[3]
 
-step = 0.001 # around 60 meters
+step = 0.0001 # around 60 meters
 
 def writeIntoFileArray(filename, lon, lat, data):
     f = open(filename, 'a')
@@ -42,6 +43,7 @@ def writeIntoFile(filename, lon, lat, data):
 def main(minLon_, minLat_, maxLon_, maxLat_, step):
     driver = webdriver.Chrome(ChromeDriverManager(version="91.0.4472.19").install())
     pointer[0] = minLon_
+    print("number of steps: ", round((maxLon_ - minLon_) / step))
     for k in range(round((maxLon_ - minLon_) / step)):
         pointer[0] += step
         pointer[1] = minLat_
@@ -52,14 +54,14 @@ def main(minLon_, minLat_, maxLon_, maxLat_, step):
             # height = '?'
             # while(height == '?'):
             driver.get(url)
-            time.sleep(1)
+            time.sleep(random.randint(1, 5))
             html_ = driver.page_source
             # for this part of the code you will need to install lxml module: pip install lxml
             soup = BeautifulSoup(html_, 'lxml')
             span_txHgt = soup.find_all('span')[0]
             height = span_txHgt.text
             print(pointer[0], pointer[1], height)
-            writeIntoFile('Novosibirsk.txt', pointer[0], pointer[1], height)
+            writeIntoFile('Novosibirsk_oktyabrskiy_0001.txt', pointer[0], pointer[1], height)
 
 
 if __name__ == '__main__':
