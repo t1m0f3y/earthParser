@@ -22,7 +22,7 @@ trb = 'trb'
 #       + str(pointer[0]) + comma + str(pointer[1]) + i + comma + trb
 
 # rectangle borders around the 'center'
-borders = [54.92404099999998, 82.71187200000031, 55.113385, 83.124699]
+borders = [55.009069999999994, 82.933401, 55.018151, 82.960240]
 minLon = borders[0]
 minLat = borders[1]
 maxLon = borders[2]
