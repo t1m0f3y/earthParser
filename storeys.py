@@ -127,7 +127,6 @@ def main(minLon_, minLat_, maxLon_, maxLat_, step):
             pointer[0]+=step
         driver.close()
 
-    driver.close()
 
 if __name__ == '__main__':
     main(minLon, minLat, maxLon, maxLat, step)
