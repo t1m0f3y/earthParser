@@ -99,18 +99,19 @@ def toLatLong(x, y, z, a, f):
 
 
 def main(minLon_, minLat_, maxLon_, maxLat_, step):
-    driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
+
 
     pointer[1]=minLon
     pointer[0]=minLat
 
     while pointer[1]<=maxLon and pointer[0]<=maxLat:
+        driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
         url = 'https://2gis.ru/novosibirsk/geo/' + str(pointer[1]) + '%2C' + str(pointer[0]) + "?m=" + str(
             pointer[1]) + '%2C' + str(pointer[0]) + "%2F16"
         driver.get(url)
         time.sleep(random.randint(1, 5))
         element = driver.find_element_by_xpath(
-            "/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]/div[2]")
+            "/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]")
         if "NoSuchElementException" not in driver.page_source:
             height = re.search("\d{1,2} этаж\w*", element.text)
             if height:
@@ -124,6 +125,9 @@ def main(minLon_, minLat_, maxLon_, maxLat_, step):
         if pointer[1]>maxLon:
             pointer[1]=minLon
             pointer[0]+=step
+        driver.close()
+
+    driver.close()
 
 if __name__ == '__main__':
     main(minLon, minLat, maxLon, maxLat, step)
