@@ -29,14 +29,21 @@ trb = 'trb'
 # rectangle borders around the 'center'
 #borders = [55.009069999999994, 82.933401, 55.018151, 82.960240] - goal
 
-borders = [55.015798, 82.940781, 55.016179, 82.94556]
-minLon = borders[0]
-minLat = borders[1]
-maxLon = borders[2]
-maxLat = borders[3]
+borders = [55.012005, 82.946789, 55.014383, 82.951332]
 
-#step = 0.0001 # around 60 meters
-step = 0.0003
+minLat = borders[0]
+minLon = borders[1]
+maxLat = borders[2]
+maxLon = borders[3]
+
+#step = 0.0001 # around 6 meters
+step = 0.000166     #around 10 meters
+
+
+#earthRad = 6371200      # [m] - Earth's radius
+#earthSMAxis = 6378200  # [m] - equator
+#earthCom = 1/298.3      # Compression
+
 
 def writeIntoFileArray(filename, lon, lat, data):
     f = open(filename, 'a')
@@ -47,27 +54,63 @@ def writeIntoFile(filename, lon, lat, data):
     f = open(filename, 'a')
     f.write(str(lon) + ' ' + str(lat) + ' ' + str(data) + '\n')
 
+def initSpher(a, f):
+    b = a * (1. - f)
+    c = a / (1. - f)
+    e2 = f * (2. - f)
+    e12 = e2 / (1. - e2)
+    return (b, c, e2, e12)
+
+def fromLatLong(lat, lon, h, a, f):
+    b, c, e2, e12 = initSpher(a, f)
+    cos_lat = math.cos(lat)
+    n = c / math.sqrt(1. + e12 * cos_lat ** 2)
+    p = (n + h) * cos_lat
+    x = p * math.cos(lon)
+    y = p * math.sin(lon)
+    z = (n + h - e2 * n) * math.sin(lat)
+    return (x, y, z)
+
+def toLatLong(x, y, z, a, f):
+    b, c, e2, e12 = initSpher(a, f)
+    p = math.hypot(x, y)
+    if p == 0.:
+        lat = math.copysign(math.pi / 2., z)
+        lon = 0.
+        h = math.fabs(z) - b
+    else:
+        t = z / p * (1. + e12 * b / math.hypot(p, z))
+        for i in range(2):
+            t = t * (1. - f)
+            lat = math.atan(t)
+            cos_lat = math.cos(lat)
+            sin_lat = math.sin(lat)
+            t = (z + e12 * b * sin_lat ** 3) / (p - e2 * a * cos_lat ** 3)
+        lon = math.atan2(y, x)
+        lat = math.atan(t)
+        cos_lat = math.cos(lat)
+        n = c / math.sqrt(1. + e12 * cos_lat ** 2)
+        if math.fabs(t) <= 1.:
+            h = p / cos_lat - n
+        else:
+            h = z / math.sin(lat) - n * (1. - e2)
+    return (lat, lon, h)
+
+
+
 def main(minLon_, minLat_, maxLon_, maxLat_, step):
     driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
 
+    pointer[1]=minLon
+    pointer[0]=minLat
 
-    #url = 'https://2gis.ru/novosibirsk/firm/70000001050285238/82.924014%2C55.047909?m=82.924357%2C55.044725%2F16'
-
-    print("number of steps Lon: ", round((maxLon_ - minLon_) / step))
-    print("number of steps Lan: ", round((maxLat_ - minLat_) / step))
-
-    print(6371000 * (math.cos(minLon) + math.sin(minLat)))
-
-    print(6371000 * (math.cos(maxLon) + math.sin(maxLat)))
-
-
-
-"""
-    while pointer[0] <= maxLon and pointer[1] <= maxLat:
-        url = 'https://2gis.ru/novosibirsk/geo/' + str(pointer[1]) + '%2C' + str(pointer[0]) + "?m=" + str(pointer[1]) + '%2C' + str(pointer[0]) + "%2F16"
+    while pointer[1]<=maxLon and pointer[0]<=maxLat:
+        url = 'https://2gis.ru/novosibirsk/geo/' + str(pointer[1]) + '%2C' + str(pointer[0]) + "?m=" + str(
+            pointer[1]) + '%2C' + str(pointer[0]) + "%2F16"
         driver.get(url)
         time.sleep(random.randint(1, 5))
-        element = driver.find_element_by_xpath("/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]/div[2]")
+        element = driver.find_element_by_xpath(
+            "/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]/div[2]")
         if "NoSuchElementException" not in driver.page_source:
             height = re.search("\d{1,2} этаж\w*", element.text)
             if height:
@@ -78,50 +121,10 @@ def main(minLon_, minLat_, maxLon_, maxLat_, step):
         writeIntoFile('Novosibirsk_storeys.txt', pointer[0], pointer[1], text)
 
         pointer[1]+=step
-        if(pointer[1] > maxLat):
-            pointer[1]=minLat
+        if pointer[1]>maxLon:
+            pointer[1]=minLon
             pointer[0]+=step
 
-"""
-"""
-    while pointer[0] <= maxLon :
-        while pointer[1] <= maxLat:
-            url = 'https://2gis.ru/novosibirsk/geo/' + str(pointer[1]) + '%2C' + str(pointer[0]) + "?m=" + str(pointer[1]) + '%2C' + str(pointer[0]) + "%2F16"
-            driver.get(url)
-            time.sleep(random.randint(1, 5))
-            element = driver.find_element_by_xpath("/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]/div[2]")
-            if "NoSuchElementException" not in driver.page_source:
-                height = re.search("\d{1,2} этаж\w*", element.text)
-                if height:
-                    test = str(height).find("'")
-                    text = str(height)[test + 1:test + 3]
-                else:
-                    text = "0"
-            writeIntoFile('Novosibirsk_storeys.txt', pointer[0], pointer[1], text)
-
-            pointer[1]+=step
-        pointer[0]+=step
-        pointer[1]=minLat
-"""
-"""
-    for k in range(round((maxLon_ - minLon_) / step)):
-        pointer[1] = minLat_
-        for j in range(round((maxLat_ - minLat_) / step)):
-            pointer[1] += step
-            url = 'https://2gis.ru/novosibirsk/geo/' + str(pointer[1]) + '%2C' + str(pointer[0]) + "?m=" + str(pointer[1]) + '%2C' + str(pointer[0]) + "%2F16"
-            driver.get(url)
-            time.sleep(random.randint(1, 5))
-            element = driver.find_element_by_xpath("/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]/div[2]")
-            if "NoSuchElementException" not in driver.page_source:
-                height = re.search("\d{1,2} этаж\w*", element.text)
-                if height:
-                    test = str(height).find("'")
-                    text = str(height)[test + 1:test + 3]
-                else:
-                    text = "0"
-            writeIntoFile('Novosibirsk_storeys.txt', pointer[0], pointer[1], text)
-        pointer[0] += step
-"""
 if __name__ == '__main__':
     main(minLon, minLat, maxLon, maxLat, step)
 
