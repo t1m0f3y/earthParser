@@ -29,7 +29,7 @@ trb = 'trb'
 # rectangle borders around the 'center'
 borders = [55.009069999999994, 82.933401, 55.018151, 82.960240] #- goal
 
-#borders = [55.012005, 82.946789, 55.014383, 82.951332]
+#borders = [55.013004, 82.948081, 55.013025, 82.948161]
 
 minLat = borders[0]
 minLon = borders[1]
@@ -110,22 +110,30 @@ def main(minLon_, minLat_, maxLon_, maxLat_, step):
             pointer[1]) + '%2C' + str(pointer[0]) + "%2F16"
         driver.get(url)
         time.sleep(random.randint(1, 5))
-        element = driver.find_element_by_xpath(
-            "/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]")
-        if "NoSuchElementException" not in driver.page_source:
-            height = re.search("\d{1,2} этаж\w*", element.text)
-            if height:
-                test = str(height).find("'")
-                text = str(height)[test + 1:test + 3]
+
+        element = driver.find_element_by_xpath("/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]")
+
+        height = re.findall("\d{1,2} этаж\w*", element.text)
+        if height:
+            if len(height) == 1:
+                height = height.pop(0)
             else:
-                text = "0"
+                height = height.pop(len(height) - 1)
+
+            test = str(height).find("'")
+            text = str(height)[test + 1:test + 3]
+        else:
+            text = "0"
+
         writeIntoFile('Novosibirsk_storeys.txt', pointer[0], pointer[1], text)
 
         pointer[1]+=step
         if pointer[1]>maxLon:
             pointer[1]=minLon
             pointer[0]+=step
+
         driver.close()
+
 
 
 if __name__ == '__main__':
