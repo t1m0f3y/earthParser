@@ -123,7 +123,9 @@ def get_buildings_boundaries():
     lonC = int(len(lon) / latC)
 
     map = [[0 for j in range(latC)] for i in range(lonC)]
-    mapA = [[0 for j in range(latC)] for i in range(lonC)]
+    #mapA = [[0 for j in range(latC)] for i in range(lonC)]
+
+    Z = np.zeros((lonC,latC))
 
     print(len(storey))
 
@@ -143,44 +145,57 @@ def get_buildings_boundaries():
     for i in range(0,lonC,1):
         for j in range(0,latC,1):
             if map[i][j]==0:
-                mapA[i][j]=1
+                Z[i][j]=1
 
     for i in range(0,lonC,1):
         for j in range(0,latC,1):
-            if mapA[i][j] == 0:
-                check(i,j,i,j,map,mapA,lonC,latC,buildingID)
+            if Z[i][j] == 0:
+                check(i,j,i,j,map,Z,lonC,latC,buildingID)
                 buildingID+=1
 
 
 
 
-        for i in range(lonC):
-            print(mapA[i])
-        print("--------------------------------------------")
-
-                    #print("i = " + str(i))
-                    #print("j = " + str(j))
-                    #print("buildingID = " + str(buildingID))
-
-    for i in range(lonC):
-        print(mapA[i])
-
-    print("-----")
-    for i in range(lonC):
-        print(map[i])
+     ##   for i in range(lonC):
+      ##      print(Z[i])
+       ## print("--------------------------------------------")
 
 
 
 ###
 
 
+##    for i in range(lonC):
+##        for j in range(latC):
+ ##           if Z[i][j]!=333:
+  ##              Z[i][j]=1
+
+    X = np.arange(0, latC, 1)
+    Y = np.arange(0, lonC, 1)
+    X, Y = np.meshgrid(X, Y)
+
+    fig = plt.figure()
+    ax = Axes3D(fig,auto_add_to_figure=False, box_aspect=(1,1*(lonC/latC),0.1))
+
+    fig.add_axes(ax)
+
+
+    ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap="hot", antialiased=False, edgecolor ='none',linewidth=20)
+    ax.set(xlim=[0,latC],ylim=[0,lonC], zlim = [0,100000000000000])
+
+    ax.set_xlabel("LON",labelpad=20)
+    ax.set_ylabel("LAT")
+    ax.set_zlabel("STOREY")
+
+    plt.show()
+
 
 
 
 def main():
 
-    plot()
-    #get_buildings_boundaries()
+    #plot()
+    get_buildings_boundaries()
 
 #test1
 """
