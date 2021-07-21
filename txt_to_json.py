@@ -62,28 +62,28 @@ def plot():
 
     #mapA = copy.deepcopy(map)
 
-    Z = np.zeros((latC,lonC))
+    Z = np.zeros((lonC,latC))
 
     for i in range(lonC):
         for j in range(latC):
             map[i][j]=storey[i*latC+j]
-            Z[j][i]=storey[i*latC+j]
+            Z[i][j]=storey[i*latC+j]
 
 
-    X = np.arange(0, lonC, 1)
-    Y = np.arange(0, latC, 1)
+    X = np.arange(0, latC, 1)
+    Y = np.arange(0, lonC, 1)
     X, Y = np.meshgrid(X, Y)
 
     fig = plt.figure()
-    ax = Axes3D(fig,auto_add_to_figure=False, box_aspect=(1*(lonC/latC),1,0.1))
+    ax = Axes3D(fig,auto_add_to_figure=False, box_aspect=(1,1*(lonC/latC),0.1))
 
     fig.add_axes(ax)
 
     ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.viridis, antialiased=False, edgecolor ='none',linewidth=20)
-    ax.set(xlim=[0,lonC],ylim=[0,latC], zlim = [0,200])
+    ax.set(xlim=[0,latC],ylim=[0,lonC], zlim = [0,200])
 
-    ax.set_xlabel("LAT")
-    ax.set_ylabel("LON",labelpad=20)
+    ax.set_xlabel("LON",labelpad=20)
+    ax.set_ylabel("LAT")
     ax.set_zlabel("STOREY")
 
     plt.show()
@@ -171,11 +171,16 @@ def get_buildings_boundaries():
 
 
 
+###
+
+
+
+
 
 def main():
 
-    #plot()
-    get_buildings_boundaries()
+    plot()
+    #get_buildings_boundaries()
 
 #test1
 """
