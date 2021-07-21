@@ -27,13 +27,22 @@ def read_from_file(fileName):
     return (lat,lon,storey)
 
 def check_cells(lon, lat, i, j, check_i, check_j):
-    if (check_i+i) < 0 or (check_i+i) >= lon or (check_j+j) < 0 or (check_j+j) >= lat:
-        return(0,0)
+    if (check_i+i) < 0:
+        check_i=0
+    else:
+        if (check_i+i) >= lon:
+            check_i = 0
+
+    if (check_j + j) < 0:
+        check_j = 0
+    else:
+        if (check_j + j) >= lat:
+            check_j = 0
+
 
     return(check_i,check_j)
 
-
-def main():
+def plot():
     lat,lon,storey = read_from_file('Novosibirsk_storeys.txt')
 
     x=lat[0]
@@ -79,6 +88,94 @@ def main():
 
     plt.show()
 
+
+def check(origin_i,origin_j, i,j,map,mapA, lonC, latC, bulID):
+
+    for check_i in range(-1,2):
+        for check_j in range(-1,2):
+            check_i, check_j = check_cells(lonC,latC,i,j,check_i,check_j)
+            if i==check_i and j==check_j:
+                continue
+
+            if map[origin_i][origin_j]==map[i+check_i][j+check_j]:
+                if mapA[i+check_i][j+check_j]==0:
+                    mapA[i+check_i][j+check_j] = bulID
+                    check(origin_i,origin_j,i+check_i,j+check_j,map,mapA,lonC,latC,bulID)
+                else:
+                    continue
+            else:
+                continue
+
+
+
+def get_buildings_boundaries():
+    lat, lon, storey = read_from_file('Novosibirsk_storeys.txt')
+
+    x = lat[0]
+
+    latC = 0
+    while lat[0] == lat[latC]:
+        latC += 1
+
+    j = 0
+    i = 0
+
+    lonC = int(len(lon) / latC)
+
+    map = [[0 for j in range(latC)] for i in range(lonC)]
+    mapA = [[0 for j in range(latC)] for i in range(lonC)]
+
+    print(len(storey))
+
+    #mapA = copy.deepcopy(map)
+
+    for i in range(lonC):
+        for j in range(latC):
+            map[i][j] = int(storey[i * latC + j])
+
+
+    buildingID=2
+
+    stop=False
+
+
+
+    for i in range(0,lonC,1):
+        for j in range(0,latC,1):
+            if map[i][j]==0:
+                mapA[i][j]=1
+
+    for i in range(0,lonC,1):
+        for j in range(0,latC,1):
+            if mapA[i][j] == 0:
+                check(i,j,i,j,map,mapA,lonC,latC,buildingID)
+                buildingID+=1
+
+
+
+
+        for i in range(lonC):
+            print(mapA[i])
+        print("--------------------------------------------")
+
+                    #print("i = " + str(i))
+                    #print("j = " + str(j))
+                    #print("buildingID = " + str(buildingID))
+
+    for i in range(lonC):
+        print(mapA[i])
+
+    print("-----")
+    for i in range(lonC):
+        print(map[i])
+
+
+
+
+def main():
+
+    #plot()
+    get_buildings_boundaries()
 
 #test1
 """
