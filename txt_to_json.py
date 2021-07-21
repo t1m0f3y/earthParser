@@ -73,6 +73,10 @@ def main():
     ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.viridis, antialiased=False, edgecolor ='none',linewidth=20)
     ax.set(xlim=[0,lonC],ylim=[0,latC], zlim = [0,200])
 
+    ax.set_xlabel("LAT")
+    ax.set_ylabel("LON",labelpad=20)
+    ax.set_zlabel("STOREY")
+
     plt.show()
 
 
