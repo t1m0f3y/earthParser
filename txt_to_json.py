@@ -85,21 +85,29 @@ def plot(filename,x,y,z, x_name, y_name, z_name, z_lim):
         for j in range(y_len):
             Z[i][j]=list_z[i*y_len+j]
 
+    '''
+    for i in range(x_len):
+        for j in  range(y_len):
+            if Z[i][j]!=210:
+                Z[i][j]=1
+    '''
     X = np.arange(0, y_len, 1)
     Y = np.arange(0, x_len, 1)
     X, Y = np.meshgrid(X, Y)
 
     fig = plt.figure()
-    ax = Axes3D(fig,auto_add_to_figure=False, box_aspect=(1,1*(x_len/y_len),0.1))
-
+    ax = Axes3D(fig,auto_add_to_figure=False, box_aspect=(1,1*(x_len/y_len),1))
     fig.add_axes(ax)
 
-    ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.viridis, antialiased=True)
+    ploT = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap='viridis', antialiased=True)
+
     ax.set(xlim=[0,y_len],ylim=[0,x_len], zlim = [0,z_lim])
 
     ax.set_xlabel(x_name,labelpad=20)
     ax.set_ylabel(y_name)
     ax.set_zlabel(z_name)
+
+    #fig.colorbar(ploT, shrink=0.3, aspect=5)
 
     plt.show()
 
@@ -159,7 +167,7 @@ def get_buildings_boundaries(lat,lon,storey):
 # N: 210, 211, 217, 254, 268 - some buildings' numbers
 
 def main():
-    plot('Novosibirsk_storeys_V2.txt',0,1,2,"LON","LAN","STOREY",50)
+    plot('Novosibirsk_storeys_V2.txt',0,1,2,"LON","LAN","STOREY",200)
 
 if __name__ == '__main__':
     main()
