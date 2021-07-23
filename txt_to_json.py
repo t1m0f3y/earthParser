@@ -8,7 +8,7 @@ import pandas as pd
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 
-
+#i, j ,k - numbers of column  in the file
 def read_from_file(fileName,i,j,k):
     f = open(fileName,'r')
     if f:
@@ -24,6 +24,7 @@ def read_from_file(fileName,i,j,k):
 
     return (x,y,z)
 
+#*args - lists
 def write_in_file(fileName,*args):
     f = open(fileName,'w')
     length = len(args[0])
@@ -67,6 +68,7 @@ def check_cells(lon, lat, i, j, check_i, check_j):
 
     return(check_i,check_j)
 
+#filename, x - x axis, y - y axis, z - z axis, x_name - x axis display name, y_name - y axis display name, z_name - z axis display name, z_lim - limiting the values of the z axis
 def plot(filename,x,y,z, x_name, y_name, z_name, z_lim):
     list_x,list_y,list_z = read_from_file(filename,x,y,z)
 
@@ -118,7 +120,6 @@ def check(origin_i,origin_j, i,j,map,mapA, lonC, latC, bulID):
                 continue
 
 def get_buildings_boundaries(lat,lon,storey):
-
     latC = 0
     while lat[0] == lat[latC]:
         latC += 1
