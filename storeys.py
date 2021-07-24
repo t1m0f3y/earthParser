@@ -65,11 +65,20 @@ def main(minLon_, minLat_, maxLon_, maxLat_, step):
             pointer[1]) + '%2C' + str(pointer[0]) + "%2F16"
         driver.get(url)
         time.sleep(1)
+        try:
+            element = driver.find_element_by_xpath(
+                "/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]")
 
-        element = driver.find_element_by_xpath(
-            "/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]")
 
-        height = re.findall("\d{1,2} этаж\w*", element.text)
+            height = re.findall("\d{1,2} этаж\w*", element.text)
+        except:
+            try:
+                driver.close()
+            except:
+                pass
+            driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
+            continue
+
         if height:
             if len(height) == 1:
                 height = height.pop(0)
