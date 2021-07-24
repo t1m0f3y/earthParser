@@ -63,7 +63,10 @@ def main(minLon_, minLat_, maxLon_, maxLat_, step):
     while pointer[1]<=maxLon and pointer[0]<=maxLat:
         url = 'https://2gis.ru/novosibirsk/geo/' + str(pointer[1]) + '%2C' + str(pointer[0]) + "?m=" + str(
             pointer[1]) + '%2C' + str(pointer[0]) + "%2F16"
-        driver.get(url)
+        try:
+            driver.get(url)
+        except:
+            continue
         time.sleep(1)
         try:
             element = driver.find_element_by_xpath(
