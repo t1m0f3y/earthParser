@@ -1,24 +1,49 @@
 import json
 import numpy as np
 import matplotlib.pyplot as plt
+import math
+import re
+import time
 from mpl_toolkits.mplot3d import Axes3D
+
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 
 class Parser:
     """Here is Parser!"""
-    #__slots__ = []
+# -------------------------PLOT----------------------------------#
+    __slots__ = ['__plots', '__borders', '__pointer', '__step']
     def __init__(self):
-        self.__plots=[]
-        pass
+        self.__plots = {}
+        self.__borders = []
+        self.__pointer = [0.0, 0.0]
+        self.__step = 1
 
-    def addPlot(self):
-        self.__plots.append([[],[],[]])
+    def addPlot(self,name):
+        self.__plots[name] = {
+            "axis":{
+            "x":{"name":"X","value":0},
+            "y":{"name":"Y","value":0},
+            "z":{"name":"Z","value":0, "step":1, "limit":200}
+        }}
 
-    def configPlot(self,num,list_x, list_y, list_z):
-        if num < len(self.plots):
-            self.plots[num][0] = list_x
-            self.plots[num][1] = list_y
-            self.plots[num][2] = list_z
+    def getPlotsName(self):
+        return self.__plots.keys()
 
+    def delPlot(self,name):
+        del(self.__plots[name])
+
+    def getPlotSettings(self,num):
+        return self.__plots[num]
+
+    def configPlot(self, num, plot):
+        self.__plots[num] = plot
+
+    def setBorders(self,borders):
+        self.__borders = borders
+
+    def getBorders(self):
+        return self.__borders
 
     def readFromTxtFile(self,fileName, *args):
         """Read .txt file's columns and convert they to one list of lists"""
@@ -60,41 +85,42 @@ class Parser:
 
         return (checkI, checkJ)
 
-    def plot(self, list_x, list_y, list_z, x_name, y_name, z_name, z_step, z_lim, cmap = 'viridis'):
+    def plot(self, list):
         """Plot"""
-        new_x = sorted(list_x)
+        for name in list:
+            new_x = sorted(self.__plots[name]["axis"]["x"]["value"])
 
-        y_len = 0
-        while new_x[0] == new_x[y_len]:
-            y_len += 1
+            y_len = 0
+            while new_x[0] == new_x[y_len]:
+                y_len += 1
 
-        x_len = int(len(list_x) / y_len)
+            x_len = int(len(self.__plots[name]["axis"]["x"]["value"]) / y_len)
 
-        Z = np.zeros((x_len, y_len))
-        for i in range(x_len):
-            for j in range(y_len):
-                Z[i][j] = list_z[i * y_len + j]
+            Z = np.zeros((x_len, y_len))
+            for i in range(x_len):
+                for j in range(y_len):
+                    Z[i][j] = self.__plots[name]["axis"]["z"]["value"][i * y_len + j]
 
-        X = np.arange(0, y_len, 1)
-        Y = np.arange(0, x_len, 1)
-        X, Y = np.meshgrid(X, Y)
+            X = np.arange(0, y_len, 1)
+            Y = np.arange(0, x_len, 1)
+            X, Y = np.meshgrid(X, Y)
 
-        fig = plt.figure()
-        ax = Axes3D(fig, auto_add_to_figure=False, box_aspect=(1, 1 * (x_len / y_len), z_step))
-        fig.add_axes(ax)
+            fig = plt.figure()
 
-        ploT = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cmap, antialiased=True)
+            ax = Axes3D(fig, auto_add_to_figure=False, box_aspect=(1, 1 * (x_len / y_len), self.__plots[name]["axis"]["z"]["step"]),title=name)
+            fig.add_axes(ax)
 
-        ax.set(xlim=[0, y_len], ylim=[0, x_len], zlim=[0, z_lim])
+            ploT = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap='viridis', antialiased=True)
 
-        ax.set_xlabel(x_name, labelpad=20)
-        ax.set_ylabel(y_name)
-        ax.set_zlabel(z_name)
+            ax.set(xlim=[0, y_len], ylim=[0, x_len], zlim=[0, self.__plots[name]["axis"]["z"]["limit"]])
 
-        fig.colorbar(ploT, shrink=0.3, aspect=5)
+            ax.set_xlabel(self.__plots[name]["axis"]["x"]["name"], labelpad=20)
+            ax.set_ylabel(self.__plots[name]["axis"]["y"]["name"])
+            ax.set_zlabel(self.__plots[name]["axis"]["z"]["name"])
+
+            fig.colorbar(ploT, shrink=0.3, aspect=5)
 
         plt.show()
-        pass
 
     def getBuildingsBoundaries(self, lat, lon, storey):
         latC = 0
@@ -146,14 +172,73 @@ class Parser:
                 else:
                     continue
 
+# -------------------------PARSER----------------------------------#
+    def parse(self, filename):
+        minLat = self.__borders[0]
+        minLon = self.__borders[1]
+        maxLat = self.__borders[2]
+        maxLon = self.__borders[3]
+
+        self.__pointer[1] = minLon
+        self.__pointer[0] = minLat
+
+        driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
+
+        latStep = self.__step / 111000  # [degrees]
+        lonStep = self.__step / (111300 * math.cos(math.radians(self.__pointer[0])))  # [degrees]
+
+        while self.__pointer[1] <= maxLon and self.__pointer[0] <= maxLat:
+            url = 'https://2gis.ru/novosibirsk/geo/' + str(self.__pointer[1]) + '%2C' + str(self.__pointer[0]) + "?m=" + str(
+                self.__pointer[1]) + '%2C' + str(self.__pointer[0]) + "%2F16"
+            try:
+                driver.get(url)
+                time.sleep(1)
+                element = driver.find_element_by_xpath(
+                    "/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]")
+
+                height = re.findall("\d{1,2} этаж\w*", element.text)
+            except:
+                try:
+                    driver.close()
+                except:
+                    pass
+                driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
+                continue
+
+            if height:
+                if len(height) == 1:
+                    height = height.pop(0)
+                else:
+                    height = height.pop(len(height) - 1)
+
+                test = str(height).find("'")
+                text = str(height)[test + 1:test + 3]
+            else:
+                text = "0"
+
+            self.__writeIntoFile(filename, self.__pointer[0], self.__pointer[1], text)
+
+            self.__pointer[1] += lonStep
+            if self.__pointer[1] > maxLon:
+                self.__pointer[1] = minLon
+                self.__pointer[0] += latStep
+                lonStep = self.__step / (111300 * math.cos(math.radians(self.__pointer[0])))
+
+        driver.close()
+
+    def __writeIntoFile(self, filename, lon, lat, data):
+        f = open(filename, 'a')
+        f.write(str(lon) + ' ' + str(lat) + ' ' + str(data) + '\n')
+
     def __del__(self):
         pass
 
 def main():
-    pars = Parser()
+    parser = Parser()
 
-    lists = pars.readFromTxtFile("Novosibirsk_storeys_HD (copy).txt",0,1,2)
-    pars.plot(lists[0],lists[1],lists[2],"Lon","lan","storey",1,200)
+    parser.setBorders([55.00916009009005, 82.933401, 55.018151, 82.960240])
+
+    parser.parse('Novosibirsk_storeys_HD.txt')
 
 if __name__ == '__main__':
     main()
