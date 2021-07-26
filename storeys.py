@@ -27,7 +27,7 @@ trb = 'trb'
 #       + str(pointer[0]) + comma + str(pointer[1]) + i + comma + trb
 
 # rectangle borders around the 'center'
-borders = [55.009069999999994, 82.933401, 55.018151, 82.960240] #- goal
+borders = [55.009088018018005, 82.933401, 55.018151, 82.960240] #- goal
 
 #borders = [55.013004, 82.948081, 55.013025, 82.948161]
 
@@ -65,13 +65,9 @@ def main(minLon_, minLat_, maxLon_, maxLat_, step):
             pointer[1]) + '%2C' + str(pointer[0]) + "%2F16"
         try:
             driver.get(url)
-        except:
-            continue
-        time.sleep(1)
-        try:
+            time.sleep(1)
             element = driver.find_element_by_xpath(
                 "/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]")
-
 
             height = re.findall("\d{1,2} этаж\w*", element.text)
         except:

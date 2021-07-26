@@ -167,7 +167,7 @@ def get_buildings_boundaries(lat,lon,storey):
 # N: 210, 211, 217, 254, 268 - some buildings' numbers
 
 def main():
-    plot('Novosibirsk_storeys_V2.txt',0,1,2,"LON","LAN","STOREY",200)
+    plot('Novosibirsk_storeys_HD (copy).txt',0,1,2,"LON","LAN","STOREY",200)
 
 if __name__ == '__main__':
     main()
