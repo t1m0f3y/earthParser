@@ -1,6 +1,8 @@
 import copy
 import ctypes.wintypes
 import json
+import time
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -9,7 +11,7 @@ from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 
 #i, j ,k - numbers of column  in the file
-def read_from_file(fileName,i,j,k):
+def read_from_file(fileName,i,j,k,t):
     f = open(fileName,'r')
     if f:
         data = f.readlines()
@@ -17,12 +19,14 @@ def read_from_file(fileName,i,j,k):
     x = []
     y = []
     z = []
+    b = []
     for line in range(0,len(data)):
         x.append(data[line].split()[i])
         y.append(data[line].split()[j])
         z.append(data[line].split()[k])
+        b.append(data[line].split()[t])
 
-    return (x,y,z)
+    return (x,y,z,b)
 
 #*args - lists
 def write_in_file(fileName,*args):
@@ -69,8 +73,8 @@ def check_cells(lon, lat, i, j, check_i, check_j):
     return(check_i,check_j)
 
 #filename, x - x axis, y - y axis, z - z axis, x_name - x axis display name, y_name - y axis display name, z_name - z axis display name, z_lim - limiting the values of the z axis
-def plot(filename,x,y,z, x_name, y_name, z_name, z_lim):
-    list_x,list_y,list_z = read_from_file(filename,x,y,z)
+def plot(filename,x,y,z,t, x_name, y_name, z_name, z_lim):
+    list_x,list_y,list_z,list_t = read_from_file(filename,x,y,z,t)
 
     new_x = sorted(list_x)
 
@@ -83,31 +87,23 @@ def plot(filename,x,y,z, x_name, y_name, z_name, z_lim):
     Z = np.zeros((x_len,y_len))
     for i in range(x_len):
         for j in range(y_len):
-            Z[i][j]=list_z[i*y_len+j]
+            Z[i][j]= float(list_z[i*y_len+j]) + float(list_t[i*y_len+j]*1)
 
-    '''
-    for i in range(x_len):
-        for j in  range(y_len):
-            if Z[i][j]!=210:
-                Z[i][j]=1
-    '''
     X = np.arange(0, y_len, 1)
     Y = np.arange(0, x_len, 1)
     X, Y = np.meshgrid(X, Y)
 
     fig = plt.figure()
-    ax = Axes3D(fig,auto_add_to_figure=False, box_aspect=(1,1*(x_len/y_len),1))
+    ax = Axes3D(fig,auto_add_to_figure=False, box_aspect=(1,1*(x_len/y_len), 0.8))
+
     fig.add_axes(ax)
 
-    ploT = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap='viridis', antialiased=True)
-
+    ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.viridis, antialiased=True)
     ax.set(xlim=[0,y_len],ylim=[0,x_len], zlim = [0,z_lim])
 
     ax.set_xlabel(x_name,labelpad=20)
     ax.set_ylabel(y_name)
     ax.set_zlabel(z_name)
-
-    #fig.colorbar(ploT, shrink=0.3, aspect=5)
 
     plt.show()
 
@@ -167,7 +163,7 @@ def get_buildings_boundaries(lat,lon,storey):
 # N: 210, 211, 217, 254, 268 - some buildings' numbers
 
 def main():
-    plot('Novosibirsk_storeys_HD (copy).txt',0,1,2,"LON","LAN","STOREY",200)
+    plot('Novosibirsk_storeys_heights.txt', 0, 1, 4,2, "LON", "LAN", "height", 250)
 
 if __name__ == '__main__':
     main()
