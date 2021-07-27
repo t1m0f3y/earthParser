@@ -8,6 +8,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 
 class Parser:
     """Here is Parser!"""
@@ -173,6 +174,42 @@ class Parser:
                     continue
 
 # -------------------------PARSER----------------------------------#
+    def parseByMouse(self,filename):
+        minLat = self.__borders[0]
+        minLon = self.__borders[1]
+        maxLat = self.__borders[2]
+        maxLon = self.__borders[3]
+
+        driver = webdriver.Chrome(executable_path="C:\M1\project\chromedriver_win32\chromedriver.exe")
+        driver.get("https://2gis.ru/novosibirsk?m=82.951537%2C55.013109%2F15.39")
+        driver.fullscreen_window()
+
+        actions = ActionChains(driver)
+
+        element = driver.find_element_by_xpath("/html/body/div/div/div/div[3]")
+        element = element.find_element_by_id("confirm")
+
+        actions.click(element)
+        actions.perform()
+        actions.reset_actions()
+        time.sleep(2)
+        close = driver.find_element_by_xpath("/html/body/div/div/div/div[1]/div[1]/div[1]/div[2]/div/div[2]/div")
+        actions.click(close)
+        actions.click(close)
+        actions.perform()
+        actions.reset_actions()
+
+        for i in range(0,100,10):
+            actions.move_to_element(element)
+            actions.move_by_offset(i, 0)
+            actions.click()
+            actions.click(close)
+
+
+        actions.perform()
+        time.sleep(3)
+
+
     def parse(self, filename):
         minLat = self.__borders[0]
         minLon = self.__borders[1]
@@ -238,7 +275,7 @@ def main():
 
     parser.setBorders([55.00916009009005, 82.933401, 55.018151, 82.960240])
 
-    parser.parse('Novosibirsk_storeys_HD.txt')
+    parser.parseByMouse('Novosibirsk.txt')
 
 if __name__ == '__main__':
     main()
