@@ -1,4 +1,6 @@
 import json
+import random
+
 import numpy as np
 import matplotlib.pyplot as plt
 import math
@@ -14,12 +16,13 @@ from selenium.webdriver.common.keys import Keys
 class Parser:
     """Here is Parser!"""
 # -------------------------PLOT----------------------------------#
-    __slots__ = ['__plots', '__borders', '__pointer', '__step']
+    __slots__ = ['__plots', '__borders', '__pointer', '__step', '__threadsCount']
     def __init__(self):
         self.__plots = {}
         self.__borders = []
         self.__pointer = [0.0, 0.0]
         self.__step = 1
+        self.__threadsCount = 2
 
     def addPlot(self,name):
         self.__plots[name] = {
@@ -244,7 +247,7 @@ class Parser:
 
         driver.close()
 
-    def parseV2(self, filename):
+    def parseThreading(self, filename):
         minLat = self.__borders[0]
         minLon = self.__borders[1]
         maxLat = self.__borders[2]
@@ -253,49 +256,69 @@ class Parser:
         self.__pointer[1] = minLon
         self.__pointer[0] = minLat
 
-        driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
+        #driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
 
         latStep = self.__step / 111000  # [degrees]
         lonStep = self.__step / (111300 * math.cos(math.radians(self.__pointer[0])))  # [degrees]
+        map=[]
+        latList=[]
+        lonList = []
         while self.__pointer[1] <= maxLon and self.__pointer[0] <= maxLat:
-            lonList = []
-            '''
-            url = 'https://2gis.ru/novosibirsk/geo/' + str(self.__pointer[1]) + '%2C' + str(self.__pointer[0]) + "?m=" + str(
-                self.__pointer[1]) + '%2C' + str(self.__pointer[0]) + "%2F16"
-            try:
-                driver.get(url)
-                time.sleep(1)
-                element = driver.find_element_by_xpath(
-                    "/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]")
-
-                height = re.findall("\d{1,2} этаж\w*", element.text)
-            except:
-                try:
-                    driver.close()
-                except:
-                    pass
-                driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
-                continue
-
-            if height:
-                if len(height) == 1:
-                    height = height.pop(0)
-                else:
-                    height = height.pop(len(height) - 1)
-
-                test = str(height).find("'")
-                text = str(height)[test + 1:test + 3]
-            else:
-                text = "0"
-            '''
-            self.__writeIntoFile(filename, self.__pointer[0], self.__pointer[1], text)
+            lonList.append(self.__pointer[1])
             self.__pointer[1] += lonStep
             if self.__pointer[1] > maxLon:
                 self.__pointer[1] = minLon
+                latList.append(self.__pointer[0])
                 self.__pointer[0] += latStep
+                map.append(lonList[:])
+                lonList.clear()
                 lonStep = self.__step / (111300 * math.cos(math.radians(self.__pointer[0])))
-        print(count)
-        driver.close()
+
+        threads = []
+        for start in range(self.__threadsCount):
+            t = threading.Thread(target=self.__run,args=[latList,map,start, filename])
+            t.start()
+
+        for thread in threads:
+            thread.join()
+
+    def __run(self, mapLat, map, start, filename):
+        driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
+        for i in range(start,len(map),self.__threadsCount):
+            for j in range(len(map[i])):
+                time.sleep(random.randint(0,3))
+                lon=map[i][j]
+                lat=mapLat[i]
+                url = 'https://2gis.ru/novosibirsk/geo/' + str(lon) + '%2C' + str(lat) + "?m=" + str(lon) + '%2C' + str(lat) + "%2F16"
+                try:
+                    driver.get(url)
+                    #time.sleep(1)
+                    element = driver.find_element_by_xpath(
+                        "/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]")
+
+                    height = re.findall("\d{1,2} этаж\w*", element.text)
+                except:
+                    try:
+                        driver.close()
+                    except:
+                        pass
+                    driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
+                    i-=1
+                    j-=1
+                    continue
+
+                if height:
+                    if len(height) == 1:
+                        height = height.pop(0)
+                    else:
+                        height = height.pop(len(height) - 1)
+
+                    test = str(height).find("'")
+                    text = str(height)[test + 1:test + 3]
+                else:
+                    text = "0"
+
+                self.__writeIntoFile(filename, lat, lon , text)
 
     def __writeIntoFile(self, filename, lon, lat, data):
         f = open(filename, 'a')
@@ -307,7 +330,7 @@ class Parser:
 def main():
     parser = Parser()
     parser.setBorders([55.0092411711711, 82.933401, 55.018151, 82.960240])
-    parser.parseV2('Novosibirsk_storeys_HD.txt')
+    parser.parseThreading('Novosibirsk_storeys_HD_Threading.txt')
 
 if __name__ == '__main__':
     main()
