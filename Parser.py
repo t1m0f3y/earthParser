@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import math
 import re
 import time
+#import concurrent.futures
+import threading
 from mpl_toolkits.mplot3d import Axes3D
 
 from selenium import webdriver
@@ -67,6 +69,21 @@ class Parser:
                 line += str(n[i]) + ' '
             line += '\n'
             f.write(line)
+        f.close()
+
+    def writeInFileCpp(self, fileName, *args):
+        """Write lists in .txt file"""
+        f = open(fileName, 'w')
+        length = len(args[0])
+        string=''
+        for n in args:
+            string+='X['+str(length)+']={'
+            for i in range(length):
+                if(i!=length-1):
+                    string+=str(n[i])+','
+                else:
+                    string+=str(n[i])+'};'+'\n'
+        f.write(string)
         f.close()
 
 
@@ -187,6 +204,7 @@ class Parser:
         latStep = self.__step / 111000  # [degrees]
         lonStep = self.__step / (111300 * math.cos(math.radians(self.__pointer[0])))  # [degrees]
 
+        count = 0
         while self.__pointer[1] <= maxLon and self.__pointer[0] <= maxLat:
             url = 'https://2gis.ru/novosibirsk/geo/' + str(self.__pointer[1]) + '%2C' + str(self.__pointer[0]) + "?m=" + str(
                 self.__pointer[1]) + '%2C' + str(self.__pointer[0]) + "%2F16"
@@ -226,6 +244,59 @@ class Parser:
 
         driver.close()
 
+    def parseV2(self, filename):
+        minLat = self.__borders[0]
+        minLon = self.__borders[1]
+        maxLat = self.__borders[2]
+        maxLon = self.__borders[3]
+
+        self.__pointer[1] = minLon
+        self.__pointer[0] = minLat
+
+        driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
+
+        latStep = self.__step / 111000  # [degrees]
+        lonStep = self.__step / (111300 * math.cos(math.radians(self.__pointer[0])))  # [degrees]
+        while self.__pointer[1] <= maxLon and self.__pointer[0] <= maxLat:
+            lonList = []
+            '''
+            url = 'https://2gis.ru/novosibirsk/geo/' + str(self.__pointer[1]) + '%2C' + str(self.__pointer[0]) + "?m=" + str(
+                self.__pointer[1]) + '%2C' + str(self.__pointer[0]) + "%2F16"
+            try:
+                driver.get(url)
+                time.sleep(1)
+                element = driver.find_element_by_xpath(
+                    "/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]")
+
+                height = re.findall("\d{1,2} этаж\w*", element.text)
+            except:
+                try:
+                    driver.close()
+                except:
+                    pass
+                driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
+                continue
+
+            if height:
+                if len(height) == 1:
+                    height = height.pop(0)
+                else:
+                    height = height.pop(len(height) - 1)
+
+                test = str(height).find("'")
+                text = str(height)[test + 1:test + 3]
+            else:
+                text = "0"
+            '''
+            self.__writeIntoFile(filename, self.__pointer[0], self.__pointer[1], text)
+            self.__pointer[1] += lonStep
+            if self.__pointer[1] > maxLon:
+                self.__pointer[1] = minLon
+                self.__pointer[0] += latStep
+                lonStep = self.__step / (111300 * math.cos(math.radians(self.__pointer[0])))
+        print(count)
+        driver.close()
+
     def __writeIntoFile(self, filename, lon, lat, data):
         f = open(filename, 'a')
         f.write(str(lon) + ' ' + str(lat) + ' ' + str(data) + '\n')
@@ -235,10 +306,8 @@ class Parser:
 
 def main():
     parser = Parser()
-
-    parser.setBorders([55.00916009009005, 82.933401, 55.018151, 82.960240])
-
-    parser.parse('Novosibirsk_storeys_HD.txt')
+    parser.setBorders([55.0092411711711, 82.933401, 55.018151, 82.960240])
+    parser.parseV2('Novosibirsk_storeys_HD.txt')
 
 if __name__ == '__main__':
     main()
