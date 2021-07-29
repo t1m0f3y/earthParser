@@ -22,7 +22,7 @@ class Parser:
         self.__borders = []
         self.__pointer = [0.0, 0.0]
         self.__step = 1
-        self.__threadsCount = 2
+        self.__threadsCount = 30
 
     def addPlot(self,name):
         self.__plots[name] = {
@@ -283,35 +283,36 @@ class Parser:
             thread.join()
 
     def __run(self, mapLat, map, start, filename):
+        time.sleep(random.randint(0, 3))
         driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
         for i in range(start,len(map),self.__threadsCount):
             for j in range(len(map[i])):
                 time.sleep(random.randint(0,3))
                 lon=map[i][j]
                 lat=mapLat[i]
-                url = 'https://2gis.ru/novosibirsk/geo/' + str(lon) + '%2C' + str(lat) + "?m=" + str(lon) + '%2C' + str(lat) + "%2F16"
+                url = 'view-source:https://2gis.ru/novosibirsk/geo/' + str(lon) + '%2C' + str(lat) + "?m=" + str(lon) + '%2C' + str(lat) + "%2F16"
                 try:
                     driver.get(url)
                     #time.sleep(1)
-                    element = driver.find_element_by_xpath(
-                        "/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]")
+                    element = driver.find_element_by_xpath("/html/body")                           #/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div[2]/div/div/div/div/div[1]/div/div[2]")
 
-                    height = re.findall("\d{1,2} этаж\w*", element.text)
+                    height = re.findall("\d{1,2} этаж\w*", element.text)#element.text)
                 except:
                     try:
                         driver.close()
                     except:
                         pass
                     driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
-                    i-=1
+                    #i-=1
                     j-=1
                     continue
-
+                #print(height)
+                #print(element.text)
                 if height:
                     if len(height) == 1:
                         height = height.pop(0)
                     else:
-                        height = height.pop(len(height) - 1)
+                        height = height.pop(1)
 
                     test = str(height).find("'")
                     text = str(height)[test + 1:test + 3]
@@ -330,7 +331,8 @@ class Parser:
 def main():
     parser = Parser()
     parser.setBorders([55.0092411711711, 82.933401, 55.018151, 82.960240])
-    parser.parseThreading('Novosibirsk_storeys_HD_Threading.txt')
+
+    parser.parseThreading('Novosibirsk_storeys_HD_ThreadingFin.txt')
 
 if __name__ == '__main__':
     main()
