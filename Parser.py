@@ -22,7 +22,7 @@ class Parser:
         self.__borders = []
         self.__pointer = [0.0, 0.0]
         self.__step = 1
-        self.__threadsCount = 30
+        self.__threadsCount = 1
 
     def addPlot(self,name):
         self.__plots[name] = {
@@ -62,7 +62,7 @@ class Parser:
                     lists[args.index(n)].append(data[line].split()[n])
         return (lists)
 
-    def writeInFile(fileName, *args):
+    def writeInFile(self, fileName, *args):
         """Write lists in .txt file"""
         f = open(fileName, 'w')
         length = len(args[0])
@@ -74,18 +74,25 @@ class Parser:
             f.write(line)
         f.close()
 
-    def writeInFileCpp(self, fileName, *args):
+    def writeInFileCpp(self, fileName, List):
         """Write lists in .txt file"""
         f = open(fileName, 'w')
-        length = len(args[0])
+        length = len(List[0])
+        oneLength = len(List)
         string=''
-        for n in args:
-            string+='X['+str(length)+']={'
-            for i in range(length):
-                if(i!=length-1):
-                    string+=str(n[i])+','
-                else:
-                    string+=str(n[i])+'};'+'\n'
+        string += 'const float storeysHeights[' + str(length) + ']' + '[' + str(oneLength) + ']' + '={\n'
+        for i in range(length):
+            string += '{'
+            for n in range(oneLength):
+                string += str(List[n][i])
+                if(n!=oneLength-1):
+                    string+=','
+
+            string+='}'
+            if (i != length - 1):
+                string+=','
+            string+='\n'
+        string+='};'
         f.write(string)
         f.close()
 
@@ -109,28 +116,43 @@ class Parser:
         """Plot"""
         for name in list:
             new_x = sorted(self.__plots[name]["axis"]["x"]["value"])
-
             y_len = 0
             while new_x[0] == new_x[y_len]:
                 y_len += 1
 
             x_len = int(len(self.__plots[name]["axis"]["x"]["value"]) / y_len)
-
+            print(x_len)
+            print(y_len)
             Z = np.zeros((x_len, y_len))
             for i in range(x_len):
                 for j in range(y_len):
                     Z[i][j] = self.__plots[name]["axis"]["z"]["value"][i * y_len + j]
 
+            #Z2 = np.kron(Z,np.ones((2,2)))
+
             X = np.arange(0, y_len, 1)
             Y = np.arange(0, x_len, 1)
             X, Y = np.meshgrid(X, Y)
+
+            '''
+            scaledHeight=[0 for i in range(x_len*y_len*4)]
+            scaledX = [0 for i in range(x_len*y_len*4)]
+            scaledY = [0 for i in range(x_len * y_len * 4)]
+            print(len(scaledHeight))
+
+            print(len(scaledX))
+            print(len(scaledY))
+            print(len(scaledHeight))
+            '''
+
+            #self.writeInFile("nskStoreysHeightsScaled.txt",scaledX,scaledY,scaledHeight)
 
             fig = plt.figure()
 
             ax = Axes3D(fig, auto_add_to_figure=False, box_aspect=(1, 1 * (x_len / y_len), self.__plots[name]["axis"]["z"]["step"]),title=name)
             fig.add_axes(ax)
 
-            ploT = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap='viridis', antialiased=True)
+            ploT = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap='viridis', antialiased=False)
 
             ax.set(xlim=[0, y_len], ylim=[0, x_len], zlim=[0, self.__plots[name]["axis"]["z"]["limit"]])
 
@@ -141,6 +163,57 @@ class Parser:
             fig.colorbar(ploT, shrink=0.3, aspect=5)
 
         plt.show()
+
+    def scale(self, List, scale):
+        newX = sorted(List[0])
+
+        yLen = 0
+        while newX[0] == newX[yLen]:
+            yLen += 1
+
+        xLen = int(len(List[0]) / yLen)
+
+        scaledYLen = yLen * scale
+        scaledXLen = xLen * scale
+
+        scaledX = [0 for i in range(scaledXLen * scaledYLen)]
+        scaledY = [0 for i in range(scaledXLen * scaledYLen)]
+
+
+        print(scaledXLen)
+        print(scaledYLen)
+
+        i = 0
+        for scaledI in range(0, len(scaledX), scale ** 3):
+            for a in range(0, 3, 2):
+                for step1 in range(0, scale ** 3, scale ** 2):
+                    for step2 in range(0, scale, 1):
+                        scaledY[scaledI + step1 + step2 + a] = List[1][i + int(a / 2)]
+                        scaledX[scaledI + step1 + step2 + a] = List[0][i + int(a / 2)]
+            i += 2
+
+        newList=[]
+        newList.append(scaledX)
+        newList.append(scaledY)
+        for num in range(2,len(List),1):
+
+            scaledZ = [0 for i in range(scaledXLen * scaledYLen)]
+
+            Z = np.zeros((xLen, yLen))
+            for i in range(xLen):
+                for j in range(yLen):
+                    Z[i][j] = List[num][i * yLen + j]
+
+            Z2 = np.kron(Z,np.ones((2,2)))
+
+            for i in range(scaledXLen):
+                for j in range(scaledYLen):
+                    scaledZ[i*scaledYLen+j] = Z2[i][j]
+            newList.append(scaledZ)
+
+
+        self.writeInFileCpp('scaleTest.cpp',newList)
+
 
     def getBuildingsBoundaries(self, lat, lon, storey):
         latC = 0
@@ -283,11 +356,11 @@ class Parser:
             thread.join()
 
     def __run(self, mapLat, map, start, filename):
-        time.sleep(random.randint(0, 3))
+        #time.sleep(random.randint(0, 3))
         driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
         for i in range(start,len(map),self.__threadsCount):
             for j in range(len(map[i])):
-                time.sleep(random.randint(0,3))
+                #time.sleep(1)
                 lon=map[i][j]
                 lat=mapLat[i]
                 url = 'view-source:https://2gis.ru/novosibirsk/geo/' + str(lon) + '%2C' + str(lat) + "?m=" + str(lon) + '%2C' + str(lat) + "%2F16"
@@ -330,9 +403,20 @@ class Parser:
 
 def main():
     parser = Parser()
-    parser.setBorders([55.0092411711711, 82.933401, 55.018151, 82.960240])
+    #parser.setBorders([55.0092411711711, 82.933401, 55.018151, 82.960240])
+    #parser.parseThreading('Novosibirsk_storeys_HD_ThreadingFin.txt')
 
-    parser.parseThreading('Novosibirsk_storeys_HD_ThreadingFin.txt')
+    parser.addPlot('plot1')
+    settings = parser.getPlotSettings('plot1')
+
+    args = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',0,1,2,3,4)
+
+    #settings['axis']['x']['value'] = args[0][:]
+    #settings['axis']['y']['value'] = args[1][:]
+    #settings['axis']['z']['value'] = args[2][:]
+
+    parser.scale(args,2)
+    #parser.plot(['plot1'])
 
 if __name__ == '__main__':
     main()
