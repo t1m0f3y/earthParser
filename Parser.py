@@ -119,9 +119,9 @@ class Parser:
             y_len = 0
             while new_x[0] == new_x[y_len]:
                 y_len += 1
-            y_len = 162*2
+            #y_len = 162*2  #TEST
             x_len = int(len(self.__plots[name]["axis"]["x"]["value"]) / y_len)
-            x_len = 55*2
+            #x_len = 55*2   #TEST
             print(x_len)
             print(y_len)
             Z = np.zeros((x_len, y_len))
@@ -226,100 +226,140 @@ class Parser:
 
         print(f'xLen = {xLen} yLen = {yLen}')
 
-        for number in range(2, len(List)):
-            newXLen = xLen * degree
-            newYLen = yLen * degree
+        for i in range(degree):
+            for number in range(2, len(List)):
+                newXLen = xLen * 2
+                newYLen = yLen * 2
 
-            #newList = [0 for i in range(newXLen * newYLen)]
-
-            newI=0
-            newJ=0
-
-            newXLen = 0
-            newYLen = 0
-
-            newList=[]
-            for i in range(xLen):
-                newYLen=0
-                for j in range(yLen):
-                    newList.append(float(List[number][i * yLen + j]))
-                    newList.append(0.0)
-                    newYLen+=2
-                for j in range(0,yLen,1):
-                    newList.append(0.0)
-                    newList.append(0.0)
-                newXLen+=2
+                newX=[]
+                newY=[]
+                for i in range(xLen):
+                    for j in range(yLen):
+                        newX.append(List[0][i * yLen + j])
+                        newY.append(List[1][i * yLen + j])
+                        newX.append(List[0][i * yLen + j])
+                        newY.append(-1.0)
+                    for j in range(yLen):
+                        newX.append(-1.0)
+                        newY.append(-1.0)
+                        newX.append(-1.0)
+                        newY.append(-1.0)
 
 
-            Z = np.zeros((newXLen, newYLen))
-
-            for i in range(newXLen):
-                for j in range(newYLen):
-                    Z[i][j]=newList[i * newYLen + j]
-
-            for i in range(newXLen):
-                for j in range(1, newYLen - 1, 2):
-                    Z[i][j] = (Z[i][j+1] + Z[i][j-1])/2
-
-            for i in range(1, newXLen - 1, 2):
-                for j in range(newYLen):
-                    Z[i][j] = (Z[i+1][j] + Z[i-1][j])/2
-
-            for i in range(1, newXLen - 1, 2):
-                for j in range(1, newYLen - 1, 2):
-                    sum=0
-                    for stepI in range(-1, 2, 1):
-                        for stepJ in range(-1, 2, 1):
-                            if stepI != 0 or stepJ != 0:
-                                sum+=Z[i+stepI][j+stepJ]
-                    Z[i][j]=sum/8
+                X = np.zeros((newXLen, newYLen))
+                Y = np.zeros((newXLen, newYLen))
+                for i  in range(newXLen):
+                    for j in range(newYLen):
+                        X[i][j] = newX[i * newYLen + j]
+                        Y[i][j] = newY[i * newYLen + j]
 
 
-            print(f'newXLen = {newXLen} newYLen = {newYLen}')
-            print(len(newList))
-            print(newXLen*newYLen)
-            '''
-            for i in range(xLen):
-                for j in range(yLen):
-                    print(f'i = {i} j = {j} newI = {newI} newJ = {newJ}')
-                    newList[newI * (newYLen) + newJ] = List[number][i * yLen + j]
-                    #Z[newI][newJ] = List[number][i * yLen + j]
-                    newJ+=2
-                newI+=2
-                newJ=0
-            
+                for i in range(newXLen):
+                    for j in range(1, newYLen - 1, 2):
+                        Y[i][j] = (Y[i][j+1] + Y[i][j-1])/2
 
-            for i in range(newXLen):
-                for j in range(newYLen):
-                    Z[i][j]=newList[i * newYLen + j]
+                for i in range(1, newXLen - 1, 2):
+                    for j in range(newYLen):
+                        Y[i][j] = (Y[i+1][j] + Y[i-1][j])/2
 
 
-            for i in range(0, newXLen - 1, 1):
-                for j in range(0, newYLen - 1, 1):
-                    if (Z[i][j]==-1):
+                for i in range(1, newXLen - 1, 2):
+                    for j in range(newYLen):
+                        X[i][j] = (X[i+1][j] + X[i-1][j])/2
+
+                for i in range(newXLen):
+                    for j in range(1, newYLen - 1, 2):
+                        X[i][j] = (X[i][j+1] + X[i][j-1])/2
+
+
+
+
+                for i in range(1, newXLen - 1, 2):
+                    for j in range(1, newYLen - 1, 2):
                         sum=0
-                        noZeroesCount=0
                         for stepI in range(-1, 2, 1):
                             for stepJ in range(-1, 2, 1):
-                                if Z[i+stepI][j+stepJ]!=0:
-                                    noZeroesCount+=1
-                                if Z[i+stepI][j+stepJ] != 0:
-                                    if stepI != 0 or stepJ != 0:
-                                        sum+=Z[i+stepI][j+stepJ]
-                        Z[i][j]=sum/noZeroesCount
-            '''
-            for i in range(newXLen):
-                for j in range(newYLen):
-                    newList[i * newYLen + j] = Z[i][j]
+                                if stepI != 0 or stepJ != 0:
+                                    sum+=X[i+stepI][j+stepJ]
+                        X[i][j]=sum/8
+
+                for i in range(1, newXLen - 1, 2):
+                    for j in range(1, newYLen - 1, 2):
+                        sum=0
+                        for stepI in range(-1, 2, 1):
+                            for stepJ in range(-1, 2, 1):
+                                if stepI != 0 or stepJ != 0:
+                                    sum+=Y[i+stepI][j+stepJ]
+                        Y[i][j]=sum/8
+
+                '''
+                for index in range(newXLen, len(newX) - newXLen, newXLen*2):
+                    for step in range(0, newXLen, 1):
+                        newX[index + step] = (float(newX[index - newXLen]) + float(newX[index + newXLen]))/2
+
+                for index in range(1, len(newX)-1, 2):
+                    newY[index] = (float(newY[index-1]) + float(newY[index+1]))/2
+                '''
+
+                newXLen = 0
+                newYLen = 0
+
+                newList=[]
+                for i in range(xLen):
+                    newYLen=0
+                    for j in range(yLen):
+                        newList.append(float(List[number][i * yLen + j]))
+                        newList.append(-1.0)
+                        newYLen+=2
+                    for j in range(0,yLen,1):
+                        newList.append(-1.0)
+                        newList.append(-1.0)
+                    newXLen+=2
+
+                Z = np.zeros((newXLen, newYLen))
+
+                for i in range(newXLen):
+                    for j in range(newYLen):
+                        Z[i][j]=newList[i * newYLen + j]
+
+                for i in range(newXLen):
+                    for j in range(1, newYLen - 1, 2):
+                        Z[i][j] = (Z[i][j+1] + Z[i][j-1])/2
+
+                for i in range(1, newXLen - 1, 2):
+                    for j in range(newYLen):
+                        Z[i][j] = (Z[i+1][j] + Z[i-1][j])/2
+
+                for i in range(1, newXLen - 1, 2):
+                    for j in range(1, newYLen - 1, 2):
+                        sum=0
+                        for stepI in range(-1, 2, 1):
+                            for stepJ in range(-1, 2, 1):
+                                if stepI != 0 or stepJ != 0:
+                                    sum+=Z[i+stepI][j+stepJ]
+                        Z[i][j]=sum/8
 
 
-        """TEST"""
-        self.addPlot('plot1')
-        self.__plots['plot1']['axis']['x']['value'] = List[0][:]
-        self.__plots['plot1']['axis']['y']['value'] = List[1][:]
-        self.__plots['plot1']['axis']['z']['value'] = newList[:]
-        self.plot(['plot1'])
-        """TEST"""
+                print(f'newXLen = {newXLen} newYLen = {newYLen}')
+                print(len(newList))
+                print(newXLen*newYLen)
+
+
+                for i in range(newXLen):
+                    for j in range(newYLen):
+                        newList[i * newYLen + j] = Z[i][j]
+                        newX[i * newYLen + j] = X[i][j]
+                        newY[i * newYLen + j] = Y[i][j]
+
+            self.writeInFile("INTERPOL_TEST.txt",newX, newY, newList)
+
+            """TEST"""
+            self.addPlot('plot1')
+            self.__plots['plot1']['axis']['x']['value'] = newX[:]
+            self.__plots['plot1']['axis']['y']['value'] = newY[:]
+            self.__plots['plot1']['axis']['z']['value'] = newList[:]
+            self.plot(['plot1'])
+            """TEST"""
 
 
     def getBuildingsBoundaries(self, lat, lon, storey):
@@ -514,7 +554,19 @@ def main():
     #parser.parseThreading('Novosibirsk_storeys_HD_ThreadingFin.txt')
 
     args = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',0,1,2)
-    parser.interpolation(args,2)
+    ground = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',4)
+
+    #for i in range(len(ground[0])):
+    #    args[2][i]= float(args[2][i]) + float(ground[0][i])
+
+    #parser.addPlot('plot1')
+    #settings = parser.getPlotSettings('plot1')
+    #settings['axis']['x']['value'] = args[0]
+    #settings['axis']['y']['value'] = args[1]
+    #settings['axis']['z']['value'] = args[2]
+    #parser.plot(['plot1'])
+
+    parser.interpolation(args,1)
 
     #settings['axis']['x']['value'] = args[0][:]
     #settings['axis']['y']['value'] = args[1][:]
