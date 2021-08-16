@@ -361,6 +361,357 @@ class Parser:
             self.plot(['plot1'])
             """TEST"""
 
+            List[0] = newX[:]
+            List[1] = newY[:]
+            List[2] = newList[:]
+
+        self.writeInFile("INTERPOL_TEST.txt",newX, newY, newList)
+
+        """TEST"""
+        self.addPlot('plot1')
+        self.__plots['plot1']['axis']['x']['value'] = newX[:]
+        self.__plots['plot1']['axis']['y']['value'] = newY[:]
+        self.__plots['plot1']['axis']['z']['value'] = newList[:]
+        self.plot(['plot1'])
+        """TEST"""
+
+    def interpolationV2(self, Lat, Lon, storeys, IDs, ground, degree):
+        #maxID=-1
+        #for i in range(len(IDs)):
+        #    if int(IDs[i])>int(maxID):
+        #        maxID = IDs[i]
+
+        for i in range(degree):
+
+            newX = sorted(Lat)
+
+            yLen = 0
+            while newX[0] == newX[yLen]:
+                yLen += 1
+
+            xLen = int(len(Lat) / yLen)
+
+            print(f'xLen = {xLen} yLen = {yLen}')
+
+            newXLen = xLen * 2
+            newYLen = yLen * 2
+
+            newX=[]
+            newY=[]
+            newIDs = []
+            newStoreys = []
+            newGround = []
+            print(len(IDs))
+            print(len(Lat))
+            print(len(Lon))
+
+            newXLen = 0
+            newYLen = 0
+
+            for i in range(xLen):
+                newYLen=0
+                for j in range(yLen):
+                    newX.append(Lat[i * yLen + j])
+                    newY.append(Lon[i * yLen + j])
+                    newX.append(Lat[i * yLen + j])
+                    newY.append(Lon[i * yLen + j])#(-1.0)
+
+                    newIDs.append(IDs[i * yLen + j])
+                    newIDs.append(IDs[i * yLen + j])
+
+                    newStoreys.append(storeys[i * yLen + j])
+                    newStoreys.append(storeys[i * yLen + j])
+
+                    newGround.append(ground[i * yLen + j])
+                    newGround.append(ground[i * yLen + j])
+
+                    newYLen += 2
+                for j in range(yLen):
+                    newX.append(Lat[i * yLen + j])
+                    newY.append(Lon[i * yLen + j])
+                    newX.append(Lat[i * yLen + j])
+                    newY.append(Lon[i * yLen + j])
+
+                    newIDs.append(IDs[i * yLen + j])
+                    newIDs.append(IDs[i * yLen + j])
+
+                    newStoreys.append(storeys[i * yLen + j])
+                    newStoreys.append(storeys[i * yLen + j])
+
+                    newGround.append(ground[i * yLen + j])
+                    newGround.append(ground[i * yLen + j])
+
+                newXLen += 2
+
+            X = np.zeros((newXLen, newYLen))
+            Y = np.zeros((newXLen, newYLen))
+            for i  in range(newXLen):
+                for j in range(newYLen):
+                    X[i][j] = newX[i * newYLen + j]
+                    Y[i][j] = newY[i * newYLen + j]
+
+            for i in range(newXLen):
+                for j in range(1, newYLen - 1, 2):
+                    Y[i][j] = (Y[i][j+1] + Y[i][j-1])/2
+
+            for i in range(1, newXLen - 1, 2):
+                for j in range(newYLen):
+                    Y[i][j] = (Y[i+1][j] + Y[i-1][j])/2
+
+            for i in range(1, newXLen - 1, 2):
+                for j in range(newYLen):
+                    X[i][j] = (X[i+1][j] + X[i-1][j])/2
+
+            for i in range(newXLen):
+                for j in range(1, newYLen - 1, 2):
+                    X[i][j] = (X[i][j+1] + X[i][j-1])/2
+
+            storeysArr = np.zeros((newXLen, newYLen))
+
+            for i in range(newXLen):
+                for j in range(newYLen):
+                    storeysArr[i][j]=newStoreys[i * newYLen + j]
+
+            groundArr = np.zeros((newXLen, newYLen))
+
+            for i in range(newXLen):
+                for j in range(newYLen):
+                    groundArr[i][j]=newGround[i * newYLen + j]
+
+            for i in range(newXLen):
+                for j in range(1, newYLen - 1, 2):
+                    groundArr[i][j] = float((groundArr[i][j+1] + groundArr[i][j-1])/2)
+
+            for i in range(1, newXLen - 1, 2):
+                for j in range(newYLen):
+                    groundArr[i][j] = float((groundArr[i+1][j] + groundArr[i-1][j])/2)
+
+            for i in range(1, newXLen - 1, 2):
+                for j in range(1, newYLen - 1, 2):
+                    sum = 0
+                    count = 0
+                    for stepI in range(-1, 2, 1):
+                        for stepJ in range(-1, 2, 1):
+                            if stepI != 0 or stepJ != 0:
+                                count+=1
+                                sum+=groundArr[i+stepI][j+stepJ]
+                    groundArr[i][j]=float(sum/count)
+
+
+
+            print(f'newXLen = {newXLen} newYLen = {newYLen}')
+            print(len(newStoreys))
+            print(newXLen*newYLen)
+
+
+            for i in range(newXLen):
+                for j in range(newYLen):
+                    newStoreys[i * newYLen + j] = storeysArr[i][j]
+                    newGround[i * newYLen + j] = groundArr[i][j]
+                    newX[i * newYLen + j] = X[i][j]
+                    newY[i * newYLen + j] = Y[i][j]
+
+            Lat = newX[:]
+            Lon = newY[:]
+            storeys = newStoreys[:]
+            IDs = newIDs[:]
+            ground = newGround[:]
+
+        LIST = []
+        LIST.append(newX[:])
+        LIST.append(newY[:])
+        LIST.append(newStoreys)
+        LIST.append(newIDs)
+        LIST.append(newGround)
+        self.writeInFileCpp("interpolationTest.cpp",LIST)
+
+    def testScaling(self, Lat, Lon, storeys, IDs, ground, degree):
+        for i in range(degree):
+            newX = sorted(Lat)
+
+            yLen = 0
+            while newX[0] == newX[yLen]:
+                yLen += 1
+
+            xLen = int(len(Lat) / yLen)
+
+            print(f'xLen = {xLen} yLen = {yLen}')
+
+            newXLen = xLen * 2
+            newYLen = yLen * 2
+
+            newX=[]
+            newY=[]
+            newIDs = []
+            newStoreys = [0 for i in range(newXLen*newYLen)]
+            newGround = []
+            print(len(IDs))
+            print(len(Lat))
+            print(len(Lon))
+
+            newXLen = 0
+            newYLen = 0
+
+
+            for i in range(xLen):
+                newYLen=0
+                for j in range(yLen):
+                    newX.append(Lat[i * yLen + j])
+                    newY.append(Lon[i * yLen + j])
+                    newX.append(Lat[i * yLen + j])
+                    newY.append(Lon[i * yLen + j])#(-1.0)
+
+                    newIDs.append(IDs[i * yLen + j])
+                    newIDs.append(IDs[i * yLen + j])
+
+                    #newStoreys.append(storeys[i * yLen + j])
+                    #newStoreys.append(storeys[i * yLen + j])
+
+                    newGround.append(ground[i * yLen + j])
+                    newGround.append(ground[i * yLen + j])
+
+                    newYLen += 2
+                for j in range(yLen):
+                    newX.append(Lat[i * yLen + j])
+                    newY.append(Lon[i * yLen + j])
+                    newX.append(Lat[i * yLen + j])
+                    newY.append(Lon[i * yLen + j])
+
+                    newIDs.append(IDs[i * yLen + j])
+                    newIDs.append(IDs[i * yLen + j])
+
+                    #newStoreys.append(storeys[i * yLen + j])
+                    #newStoreys.append(storeys[i * yLen + j])
+
+                    newGround.append(ground[i * yLen + j])
+                    newGround.append(ground[i * yLen + j])
+
+                newXLen += 2
+
+            X = np.zeros((newXLen, newYLen))
+            Y = np.zeros((newXLen, newYLen))
+            for i  in range(newXLen):
+                for j in range(newYLen):
+                    X[i][j] = newX[i * newYLen + j]
+                    Y[i][j] = newY[i * newYLen + j]
+
+            for i in range(newXLen):
+                for j in range(1, newYLen - 1, 2):
+                    Y[i][j] = (Y[i][j+1] + Y[i][j-1])/2
+
+            for i in range(1, newXLen - 1, 2):
+                for j in range(newYLen):
+                    Y[i][j] = (Y[i+1][j] + Y[i-1][j])/2
+
+            for i in range(1, newXLen - 1, 2):
+                for j in range(newYLen):
+                    X[i][j] = (X[i+1][j] + X[i-1][j])/2
+
+            for i in range(newXLen):
+                for j in range(1, newYLen - 1, 2):
+                    X[i][j] = (X[i][j+1] + X[i][j-1])/2
+
+            #storeysArr = np.zeros((newXLen, newYLen))
+            groundArr = np.zeros((newXLen, newYLen))
+
+            for i in range(newXLen):
+                for j in range(newYLen):
+                    groundArr[i][j]=newGround[i * newYLen + j]
+
+            for i in range(newXLen):
+                for j in range(1, newYLen - 1, 2):
+                    groundArr[i][j] = float((groundArr[i][j+1] + groundArr[i][j-1])/2)
+
+            for i in range(1, newXLen - 1, 2):
+                for j in range(newYLen):
+                    groundArr[i][j] = float((groundArr[i+1][j] + groundArr[i-1][j])/2)
+
+            for i in range(1, newXLen - 1, 2):
+                for j in range(1, newYLen - 1, 2):
+                    sum = 0
+                    count = 0
+                    for stepI in range(-1, 2, 1):
+                        for stepJ in range(-1, 2, 1):
+                            if stepI != 0 or stepJ != 0:
+                                count+=1
+                                sum+=groundArr[i+stepI][j+stepJ]
+                    groundArr[i][j]=float(sum/count)
+
+            for i in range(newXLen):
+                for j in range(newYLen):
+                    #newStoreys[i * newYLen + j] = storeysArr[i][j]
+                    newGround[i * newYLen + j] = groundArr[i][j]
+                    newX[i * newYLen + j] = X[i][j]
+                    newY[i * newYLen + j] = Y[i][j]
+
+            storeysArr = np.zeros((xLen,yLen))
+            newStoreysArr = np.zeros((newXLen, newYLen))
+
+            for i in range(0, xLen, 1):
+                for j in range(0, yLen, 1):
+                    storeysArr[i][j] = storeys[i * yLen + j]
+
+            for i in range(1, xLen - 1, 1):
+                for j in range(1, yLen - 1, 1):
+                    newStoreysArr[i * 2][j * 2] = storeysArr[i][j]
+                    newStoreysArr[i * 2][j * 2 + 1] = storeysArr[i][j]
+                    newStoreysArr[i * 2 + 1][j * 2] = storeysArr[i][j]
+                    newStoreysArr[i * 2 + 1][j * 2 + 1] = storeysArr[i][j]
+                    '''
+                    if storeysArr[i-1][j] == storeysArr[i-1][j+1] == storeysArr[i][j+1]:
+                        newStoreysArr[i*2][j*2 + 1] = storeysArr[i-1][j+1]
+                    if storeysArr[i][j+1] == storeysArr[i+1][j+1] == storeysArr[i+1][j]:
+                        newStoreysArr[i*2 + 1][j*2 + 1] = storeysArr[i+1][j+1]
+                    if storeysArr[i-1][j] == storeysArr[i-1][j-1] == storeysArr[i][j-1]:
+                        newStoreysArr[i*2][j*2] = storeysArr[i-1][j-1]
+                    if storeysArr[i+1][j] == storeysArr[i+1][j-1] == storeysArr[i][j-1]:
+                        newStoreysArr[i*2 + 1][j*2] = storeysArr[i+1][j-1]
+                    '''
+                    count = 0
+                    if storeysArr[i-1][j] == storeysArr[i][j+1]:
+                        newStoreysArr[i*2][j*2+1] = storeysArr[i][j+1]
+                        count+=1
+                    if storeysArr[i][j+1] == storeysArr[i+1][j]:
+                        newStoreysArr[i*2+1][j*2+1] = storeysArr[i+1][j]
+                        count+=1
+                    if storeysArr[i+1][j] == storeysArr[i][j-1]:
+                        newStoreysArr[i*2+1][j*2] = storeysArr[i][j-1]
+                        count+=1
+                    if storeysArr[i][j-1] == storeysArr[i-1][j]:
+                        newStoreysArr[i*2][j*2] = storeysArr[i-1][j]
+                        count+=1
+
+                    if count >= 3:
+                        newStoreysArr[i * 2][j * 2] = storeysArr[i][j]
+                        newStoreysArr[i * 2 + 1][j * 2] = storeysArr[i][j]
+                        newStoreysArr[i * 2 + 1][j * 2 + 1] = storeysArr[i][j]
+                        newStoreysArr[i * 2][j * 2 + 1] = storeysArr[i][j]
+
+
+
+            for i in range(0, newXLen, 1):
+                for j in range(0, newYLen, 1):
+                    newStoreys[i * newYLen + j] = newStoreysArr[i][j]
+
+            Lat = newX[:]
+            Lon = newY[:]
+            storeys = newStoreys[:]
+            IDs = newIDs[:]
+            ground = newGround[:]
+
+
+            print(f'newXLen = {newXLen} newYLen = {newYLen}')
+            print(len(newStoreys))
+            print(newXLen*newYLen)
+
+        LIST = []
+        LIST.append(newX[:])
+        LIST.append(newY[:])
+        LIST.append(newStoreys)
+        LIST.append(newIDs)
+        LIST.append(newGround)
+        self.writeInFileCpp("interpolationTest.cpp",LIST)
+
 
     def getBuildingsBoundaries(self, lat, lon, storey):
         latC = 0
@@ -556,24 +907,8 @@ def main():
     args = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',0,1,2)
     ground = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',4)
 
-    #for i in range(len(ground[0])):
-    #    args[2][i]= float(args[2][i]) + float(ground[0][i])
+    parser.interpolationV2(args[0],args[1],args[2],args[3],args[4],3)
 
-    #parser.addPlot('plot1')
-    #settings = parser.getPlotSettings('plot1')
-    #settings['axis']['x']['value'] = args[0]
-    #settings['axis']['y']['value'] = args[1]
-    #settings['axis']['z']['value'] = args[2]
-    #parser.plot(['plot1'])
-
-    parser.interpolation(args,1)
-
-    #settings['axis']['x']['value'] = args[0][:]
-    #settings['axis']['y']['value'] = args[1][:]
-    #settings['axis']['z']['value'] = args[2][:]
-
-    #parser.scale(args,2)
-    #parser.plot(['plot1'])
 
 if __name__ == '__main__':
     main()
