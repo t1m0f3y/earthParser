@@ -904,11 +904,11 @@ def main():
     #parser.setBorders([55.0092411711711, 82.933401, 55.018151, 82.960240])
     #parser.parseThreading('Novosibirsk_storeys_HD_ThreadingFin.txt')
 
-    args = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',0,1,2)
-    ground = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',4)
+    args = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',0,1,2,3,4)
+    #ground = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',4)
 
-    parser.interpolationV2(args[0],args[1],args[2],args[3],args[4],3)
-
+    #parser.interpolationV2(args[0],args[1],args[2],args[3],args[4],3)
+    parser.testScaling(args[0],args[1],args[2],args[3],args[4],3)
 
 if __name__ == '__main__':
     main()
