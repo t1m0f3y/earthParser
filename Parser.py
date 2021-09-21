@@ -841,17 +841,21 @@ class Parser:
         driver.get(url)
         while self.__pointer[1] <= maxLon and self.__pointer[0] <= maxLat:
             try:
+                searchWord = f'{round(self.__pointer[0], 6)} {round(self.__pointer[1], 6)}'
 
-                searchWord = f'{self.__pointer[0]} {self.__pointer[1]}'
-                time.sleep(1)
-                searchBar = driver.find_element_by_xpath("/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[1]/div/div/div/div/div[2]/form/div/input")
+                searchBar = driver.find_element_by_xpath(
+                    "/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[1]/div/div/div/div/div[2]/form/div/input")
                 searchBar.clear()
                 searchBar.send_keys(searchWord)
                 searchBar.send_keys(Keys.RETURN)
                 time.sleep(1)
                 element = driver.find_element_by_xpath("/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div/div[2]/div[2]/div[1]/div/div/div/div[3]/div/div")
 
+                #clear = driver.find_element_by_xpath("/html/body/div/div/div/div[1]/div[1]/div[1]/div[2]/div/div[1]/div")
+
                 height = re.findall("\d{1,2} этаж\w*", element.text)
+                #clear.click()
+
             except:
                 try:
                     driver.close()
@@ -966,7 +970,7 @@ class Parser:
 def main():
     parser = Parser()
     parser.setBorders([55.0092411711711, 82.933401, 55.018151, 82.960240])
-    parser.setStep(2)
+    parser.setStep(10)
     parser.parseBySearchBar('newnewnewnewnewenwnea.txt')
 
     #args = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',0,1,2,3,4)
