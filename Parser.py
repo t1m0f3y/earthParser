@@ -773,7 +773,7 @@ class Parser:
         self.__pointer[1] = minLon
         self.__pointer[0] = minLat
 
-        driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
+        driver = webdriver.Firefox(executable_path="./geckodriver")
 
         latStep = self.__step / 111000  # [degrees]
         lonStep = self.__step / (111300 * math.cos(math.radians(self.__pointer[0])))  # [degrees]
@@ -794,7 +794,7 @@ class Parser:
                     driver.close()
                 except:
                     pass
-                driver = webdriver.Firefox(executable_path="/opt/WebDriver/bin/geckodriver")
+                driver = webdriver.Firefox(executable_path="./geckodriver")
                 continue
 
             if height:
@@ -901,14 +901,14 @@ class Parser:
 
 def main():
     parser = Parser()
-    #parser.setBorders([55.0092411711711, 82.933401, 55.018151, 82.960240])
-    #parser.parseThreading('Novosibirsk_storeys_HD_ThreadingFin.txt')
+    parser.setBorders([55.0092411711711, 82.933401, 55.018151, 82.960240])
+    parser.parse('newnewnewnewnewenwnea.txt')
 
-    args = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',0,1,2,3,4)
+    #args = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',0,1,2,3,4)
     #ground = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',4)
 
     #parser.interpolationV2(args[0],args[1],args[2],args[3],args[4],3)
-    parser.testScaling(args[0],args[1],args[2],args[3],args[4],3)
+    #parser.testScaling(args[0],args[1],args[2],args[3],args[4],3)
 
 if __name__ == '__main__':
     main()
