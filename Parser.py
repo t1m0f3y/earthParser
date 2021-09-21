@@ -47,6 +47,9 @@ class Parser:
     def setBorders(self,borders):
         self.__borders = borders
 
+    def setStep(self, newStep):
+        self.__step = newStep
+
     def getBorders(self):
         return self.__borders
 
@@ -818,6 +821,67 @@ class Parser:
 
         driver.close()
 
+    def parseBySearchBar(self, filename):
+        minLat = self.__borders[0]
+        minLon = self.__borders[1]
+        maxLat = self.__borders[2]
+        maxLon = self.__borders[3]
+
+        self.__pointer[1] = minLon
+        self.__pointer[0] = minLat
+
+        driver = webdriver.Firefox(executable_path="./geckodriver")
+
+        latStep = self.__step / 111000  # [degrees]
+        lonStep = self.__step / (111300 * math.cos(math.radians(self.__pointer[0])))  # [degrees]
+
+        count = 0
+
+        url = 'https://2gis.ru/novosibirsk/'
+        driver.get(url)
+        while self.__pointer[1] <= maxLon and self.__pointer[0] <= maxLat:
+            try:
+
+                searchWord = f'{self.__pointer[0]} {self.__pointer[1]}'
+                time.sleep(1)
+                searchBar = driver.find_element_by_xpath("/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[1]/div/div/div/div/div[2]/form/div/input")
+                searchBar.clear()
+                searchBar.send_keys(searchWord)
+                searchBar.send_keys(Keys.RETURN)
+                time.sleep(1)
+                element = driver.find_element_by_xpath("/html/body/div/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div/div[2]/div[2]/div[1]/div/div/div/div[3]/div/div")
+
+                height = re.findall("\d{1,2} этаж\w*", element.text)
+            except:
+                try:
+                    driver.close()
+                except:
+                    pass
+                driver = webdriver.Firefox(executable_path="./geckodriver")
+                driver.get(url)
+                continue
+
+            if height:
+                if len(height) == 1:
+                    height = height.pop(0)
+                else:
+                    height = height.pop(len(height) - 1)
+
+                test = str(height).find("'")
+                text = str(height)[test + 1:test + 3]
+            else:
+                text = "0"
+
+            self.__writeIntoFile(filename, self.__pointer[0], self.__pointer[1], text)
+
+            self.__pointer[1] += lonStep
+            if self.__pointer[1] > maxLon:
+                self.__pointer[1] = minLon
+                self.__pointer[0] += latStep
+                lonStep = self.__step / (111300 * math.cos(math.radians(self.__pointer[0])))
+
+        driver.close()
+
     def parseThreading(self, filename):
         minLat = self.__borders[0]
         minLon = self.__borders[1]
@@ -902,7 +966,8 @@ class Parser:
 def main():
     parser = Parser()
     parser.setBorders([55.0092411711711, 82.933401, 55.018151, 82.960240])
-    parser.parse('newnewnewnewnewenwnea.txt')
+    parser.setStep(2)
+    parser.parseBySearchBar('newnewnewnewnewenwnea.txt')
 
     #args = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',0,1,2,3,4)
     #ground = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',4)
