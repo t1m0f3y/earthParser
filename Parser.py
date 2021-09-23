@@ -835,6 +835,51 @@ class Parser:
         latStep = self.__step / 111000  # [degrees]
         lonStep = self.__step / (111300 * math.cos(math.radians(self.__pointer[0])))  # [degrees]
 
+        checker = {
+            'info':{},
+            'data':{}
+        }
+        checker['data'][str(self.__pointer[0])] = {} # create latitude thread
+
+        lonCount = 0
+        latCount = 1
+
+        while self.__pointer[1] <= maxLon and self.__pointer[0] <= maxLat:
+            checker['data'][str(self.__pointer[0])][str(self.__pointer[1])] = 0     # add a longitude value in
+                                                                                    # the latitude thread
+            self.__pointer[1] += lonStep
+
+            if self.__pointer[1] > maxLon:
+                print(len((checker['data'][str(self.__pointer[0])])))
+                if(lonCount < len((checker['data'][str(self.__pointer[0])]))):
+                    lonCount = len((checker['data'][str(self.__pointer[0])]))
+                    #print(lonCount)
+
+                checker['info']['lonCount'] = lonCount
+
+                self.__pointer[1] = minLon
+                self.__pointer[0] += latStep
+
+                checker['data'][str(self.__pointer[0])] = {}  # add new latitude thread
+                latCount += 1
+
+                lonStep = self.__step / (111300 * math.cos(math.radians(self.__pointer[0])))
+
+
+        latCount -=1
+
+        checker['info']['latCount'] = latCount
+        checker['info']['length'] = checker['info']['lonCount'] * checker['info']['latCount']
+        checker['info']['bo']
+
+        checker['data'].pop(str(self.__pointer[0]))
+
+        with open('checker.json', 'w') as file:
+            json.dump(checker, file, indent=1)
+            file.close()
+
+        return 1
+
         count = 0
 
         url = 'https://2gis.ru/novosibirsk/'
@@ -969,10 +1014,10 @@ class Parser:
 
 def main():
     parser = Parser()
-    parser.setBorders([55.0092411711711, 82.933401, 55.018151, 82.960240])
-    parser.setStep(10)
-    parser.parseBySearchBar('newnewnewnewnewenwnea.txt')
+    parser.setBorders([54.930053, 82.74078, 55.140901, 83.102854])
 
+    parser.setStep(1)
+    parser.parseBySearchBar('newnewnewnewnewenwnea.txt')
     #args = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',0,1,2,3,4)
     #ground = parser.readFromTxtFile('Novosibirsk_storeys_heights.txt',4)
 
